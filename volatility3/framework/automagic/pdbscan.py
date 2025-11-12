@@ -7,6 +7,7 @@ from loaded PE files.
 This module contains a standalone scanner, and also a :class:`~volatility3.framework.interfaces.layers.ScannerInterface`
 based scanner for use within the framework by calling :func:`~volatility3.framework.interfaces.layers.DataLayerInterface.scan`.
 """
+
 import contextlib
 import logging
 import math

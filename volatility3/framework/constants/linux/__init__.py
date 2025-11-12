@@ -5,6 +5,7 @@
 
 Linux-specific values that aren't found in debug symbols
 """
+
 import enum
 from dataclasses import dataclass
 

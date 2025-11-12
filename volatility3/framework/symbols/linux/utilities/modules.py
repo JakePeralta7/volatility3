@@ -297,7 +297,6 @@ class Modules(interfaces.configuration.VersionableInterface):
 
             # process each module coming from back the current source
             for module in gatherer.gather_modules(context, kernel_module_name):
-
                 # the kernel sends back a ModuleInfo directly
                 if isinstance(module, ModuleInfo):
                     modinfo = module
@@ -998,13 +997,16 @@ class ModuleDisplayPlugin(interfaces.configuration.VersionableInterface):
                     with self.open(file_name) as file_handle:
                         file_handle.write(elf_data)
 
-            yield 0, (
-                format_hints.Hex(module.vol.offset),
-                name,
-                format_hints.Hex(code_size),
-                taints,
-                parameters,
-                file_name,
+            yield (
+                0,
+                (
+                    format_hints.Hex(module.vol.offset),
+                    name,
+                    format_hints.Hex(code_size),
+                    taints,
+                    parameters,
+                    file_name,
+                ),
             )
 
     def run(self):

@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import tempfile
+
 from test import WindowsSamples, test_volatility
 
 
@@ -437,7 +438,7 @@ class TestWindowsVadyarascan:
 class TestWindowsAmcache:
     def test_windows_generic_amcache(self, volatility, python, image):
         rc, out, _err = test_volatility.runvol_plugin(
-            "windows.amcache.Amcache",
+            "windows.registry.amcache.Amcache",
             image,
             volatility,
             python,
@@ -492,7 +493,7 @@ class TestWindowsBigPools:
 # class TestWindowsCachedump:
 #     def test_windows_generic_cachedump(self, volatility, python, image):
 #         rc, out, _err = test_volatility.runvol_plugin(
-#             "windows.cachedump.Cachedump",
+#             "windows.registry.cachedump.Cachedump",
 #             image,
 #             volatility,
 #             python,
@@ -820,7 +821,7 @@ class TestWindowsLsadump:
     def test_windows_specific_lsadump(self, volatility, python):
         image = WindowsSamples.WINDOWSXP_GENERIC.value.path
         rc, out, _err = test_volatility.runvol_plugin(
-            "windows.lsadump.Lsadump",
+            "windows.registry.lsadump.Lsadump",
             image,
             volatility,
             python,

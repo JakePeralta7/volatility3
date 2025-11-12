@@ -79,7 +79,7 @@ def deprecated_method(
                             "This is a bug, the deprecated call needs to be removed and the caller needs to update their code to use the new method.",
                         )
 
-            deprecation_msg = f"Method \"{deprecated_func.__module__ + '.' + deprecated_func.__qualname__}\" is deprecated and will be removed in the first release after {removal_date}, use \"{replacement.__module__ + '.' + replacement.__qualname__}\" instead. {additional_information}"
+            deprecation_msg = f'Method "{deprecated_func.__module__ + "." + deprecated_func.__qualname__}" is deprecated and will be removed in the first release after {removal_date}, use "{replacement.__module__ + "." + replacement.__qualname__}" instead. {additional_information}'
             warnings.warn(deprecation_msg, FutureWarning)
             # Return the wrapped function with its original arguments
             return deprecated_func(*args, **kwargs)

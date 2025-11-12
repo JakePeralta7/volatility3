@@ -36,7 +36,6 @@ vollog = logging.getLogger(__name__)
 
 
 class module(generic.GenericIntelProcess):
-
     def is_valid(self):
         """Determine whether it is a valid module object by verifying the self-referential
         in module_kobject. This also confirms that the module is actively allocated and
@@ -991,7 +990,6 @@ class maple_tree(objects.StructType):
 
 
 class mm_struct(objects.StructType):
-
     # TODO: As of version 3.0.0 this method should be removed
     def get_mmap_iter(self) -> Iterable[interfaces.objects.ObjectInterface]:
         """
@@ -1273,6 +1271,42 @@ class vm_area_struct(objects.StructType):
         except exceptions.InvalidAddressException:
             return None
 
+    def get_malicious_pages(self, proclayer) -> List[int]:
+        """Identifies and returns a list of potentially malicious memory pages.
+
+        A page is considered malicious if it is:
+            - Executable (protection flags match 'r-x')
+            - Dirty (modified since process start, according to proclayer.is_dirty())
+
+        Args:
+            proclayer: The process's memory layer
+
+        Returns:
+            List[int]: A list of virtual addresses for pages flagged as potentially malicious.
+        """
+
+        malicious_pages = []
+        flags_str = self.get_protection()
+
+        if (
+            proclayer
+            and "r-x" in flags_str
+            and self.vm_file.dereference().vol.offset != 0
+        ):
+            for i in range(self.vm_start, self.vm_end, proclayer.page_size):
+                try:
+                    if proclayer.is_dirty(i):
+                        vollog.debug(f"Found malicious (dirty+exec) page at {hex(i)} !")
+                        malicious_pages.append(i)
+                except (
+                    exceptions.PagedInvalidAddressException,
+                    exceptions.InvalidAddressException,
+                ) as excp:
+                    vollog.debug(f"Unable to translate address {hex(i)} : {excp}")
+                    # Abort as it is likely that other addresses in the same range will also fail
+                    break
+        return malicious_pages
+
     # used by malfind
     def is_suspicious(self, proclayer=None):
         ret = False
@@ -1288,7 +1322,7 @@ class vm_area_struct(objects.StructType):
                 try:
                     if proclayer.is_dirty(i):
                         vollog.warning(
-                            f"Found malicious (dirty+exec) page at {hex(i)} !"
+                            f"Found malicious page(s) inside (dirty+exec) region {hex(self.vm_start)} !"
                         )
                         # We do not attempt to find other dirty+exec pages once we have found one
                         ret = True
@@ -3048,7 +3082,6 @@ class latch_tree_root(objects.StructType):
 
 
 class kernel_symbol(objects.StructType):
-
     def _offset_to_ptr(self, off) -> int:
         layer = self._context.layers[self.vol.layer_name]
         long_mask = (1 << layer.bits_per_register) - 1

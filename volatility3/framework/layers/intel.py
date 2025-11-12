@@ -315,7 +315,13 @@ class Intel(linear.LinearlyMappedLayer):
             ):
                 # The block isn't contiguous
                 if stashed_offset is not None:
-                    yield stashed_offset, stashed_size, stashed_mapped_offset, stashed_mapped_size, stashed_map_layer
+                    yield (
+                        stashed_offset,
+                        stashed_size,
+                        stashed_mapped_offset,
+                        stashed_mapped_size,
+                        stashed_map_layer,
+                    )
                 # Update all the stashed values after output
                 stashed_offset = offset
                 stashed_mapped_offset = mapped_offset
@@ -334,7 +340,13 @@ class Intel(linear.LinearlyMappedLayer):
             and stashed_mapped_size is not None
             and stashed_map_layer is not None
         ):
-            yield stashed_offset, stashed_size, stashed_mapped_offset, stashed_mapped_size, stashed_map_layer
+            yield (
+                stashed_offset,
+                stashed_size,
+                stashed_mapped_offset,
+                stashed_mapped_size,
+                stashed_map_layer,
+            )
 
     def _mapping(
         self, offset: int, length: int, ignore_errors: bool = False

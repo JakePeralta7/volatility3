@@ -4,10 +4,10 @@
 """A module containing a plugin that lists loaded kernel modules."""
 
 import logging
-from typing import List, Iterable
+from typing import Iterable, List
 
 import volatility3.framework.symbols.linux.utilities.modules as linux_utilities_modules
-from volatility3.framework import interfaces, deprecation
+from volatility3.framework import deprecation, interfaces
 from volatility3.framework.configuration import requirements
 from volatility3.framework.interfaces import plugins
 
@@ -38,7 +38,7 @@ class Lsmod(plugins.PluginInterface):
     @deprecation.deprecated_method(
         replacement=linux_utilities_modules.Modules.list_modules,
         replacement_version=(3, 0, 0),
-        removal_date="2025-09-25",
+        removal_date="2026-03-25",
     )
     def list_modules(
         cls, context: interfaces.context.ContextInterface, vmlinux_module_name: str

@@ -75,10 +75,13 @@ class ModuleExtract(interfaces.plugins.PluginInterface):
         with self.open(file_name) as file_handle:
             file_handle.write(elf_data)
 
-        yield 0, (
-            format_hints.Hex(base_address),
-            len(elf_data),
-            file_handle.preferred_filename,
+        yield (
+            0,
+            (
+                format_hints.Hex(base_address),
+                len(elf_data),
+                file_handle.preferred_filename,
+            ),
         )
 
     def run(self):
