@@ -118,7 +118,8 @@ class AmsiProviders(interfaces.plugins.PluginInterface):
                                     if data and isinstance(data, bytes):
                                         decoded = data.decode("utf-16-le", errors="replace").rstrip("\x00")
                                         if decoded.strip():
-                                            dll_path = decoded
+                                            # Remove surrounding quotes if present
+                                            dll_path = decoded.strip().strip('"')
                                             break
                                 except (exceptions.InvalidAddressException, registry.RegistryException):
                                     pass
