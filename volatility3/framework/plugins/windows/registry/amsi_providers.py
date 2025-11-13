@@ -44,11 +44,15 @@ class AmsiProviders(interfaces.plugins.PluginInterface):
                 if value_name in ["", "(Default)", None]:
                     data = value.decode_data()
                     if data and isinstance(data, bytes):
-                        decoded = data.decode("utf-16-le", errors="replace").rstrip("\x00").strip()
+                        decoded = (
+                            data.decode("utf-16-le", errors="replace")
+                            .rstrip("\x00")
+                            .strip()
+                        )
                         if decoded:
                             return decoded.strip('"')
             if not values_found:
-                vollog.debug(f"No values found in key")
+                vollog.debug("No values found in key")
         except (exceptions.InvalidAddressException, registry.RegistryException) as e:
             vollog.debug(f"Exception reading key values: {e}")
         return None
@@ -71,13 +75,17 @@ class AmsiProviders(interfaces.plugins.PluginInterface):
         Yields:
             Tuple of (architecture, provider_guid, provider_name, dll_path)
         """
-        
+
         # Registry paths for 64-bit and 32-bit AMSI providers
         registry_paths = [
-            ("WOW6432Node\\Microsoft\\AMSI\\Providers", "Classes\\Wow6432Node\\CLSID", "32bit"),
+            (
+                "WOW6432Node\\Microsoft\\AMSI\\Providers",
+                "Classes\\Wow6432Node\\CLSID",
+                "32bit",
+            ),
             ("Microsoft\\AMSI\\Providers", "Classes\\CLSID", "64bit"),
         ]
-        
+
         for hive in hivelist.HiveList.list_hives(
             context=context,
             base_config_path=base_config_path,
@@ -87,7 +95,11 @@ class AmsiProviders(interfaces.plugins.PluginInterface):
             for providers_path, clsid_base_path, architecture in registry_paths:
                 try:
                     providers_key = hive.get_key(providers_path)
-                except (KeyError, exceptions.InvalidAddressException, registry.RegistryException):
+                except (
+                    KeyError,
+                    exceptions.InvalidAddressException,
+                    registry.RegistryException,
+                ):
                     continue
 
                 for provider_subkey in providers_key.get_subkeys():
@@ -96,41 +108,69 @@ class AmsiProviders(interfaces.plugins.PluginInterface):
                         if not provider_guid or not provider_guid.startswith("{"):
                             continue
 
-                        vollog.debug(f"Processing provider GUID: {provider_guid} from path: {providers_path}")
+                        vollog.debug(
+                            f"Processing provider GUID: {provider_guid} from path: {providers_path}"
+                        )
 
                         provider_name = renderers.NotAvailableValue()
                         dll_path = renderers.NotAvailableValue()
 
                         # Get provider name from CLSID registration
                         try:
-                            clsid_key = hive.get_key(f"{clsid_base_path}\\{provider_guid}")
-                            vollog.debug(f"Found CLSID key: {clsid_base_path}\\{provider_guid}")
+                            clsid_key = hive.get_key(
+                                f"{clsid_base_path}\\{provider_guid}"
+                            )
+                            vollog.debug(
+                                f"Found CLSID key: {clsid_base_path}\\{provider_guid}"
+                            )
                             name = cls._get_default_value(clsid_key)
                             if name:
                                 provider_name = name
                                 vollog.debug(f"Found provider name: {name}")
-                        except (KeyError, exceptions.InvalidAddressException, registry.RegistryException) as e:
-                            vollog.debug(f"Could not find CLSID key {clsid_base_path}\\{provider_guid}: {e}")
+                        except (
+                            KeyError,
+                            exceptions.InvalidAddressException,
+                            registry.RegistryException,
+                        ) as e:
+                            vollog.debug(
+                                f"Could not find CLSID key {clsid_base_path}\\{provider_guid}: {e}"
+                            )
 
                         # Get DLL path from InprocServer32
                         try:
-                            inproc_key = hive.get_key(f"{clsid_base_path}\\{provider_guid}\\InprocServer32")
-                            vollog.debug(f"Found InprocServer32 key: {clsid_base_path}\\{provider_guid}\\InprocServer32")
+                            inproc_key = hive.get_key(
+                                f"{clsid_base_path}\\{provider_guid}\\InprocServer32"
+                            )
+                            vollog.debug(
+                                f"Found InprocServer32 key: {clsid_base_path}\\{provider_guid}\\InprocServer32"
+                            )
                             path = cls._get_default_value(inproc_key)
                             if path:
                                 dll_path = path
                                 vollog.debug(f"Found DLL path: {path}")
-                        except (KeyError, exceptions.InvalidAddressException, registry.RegistryException) as e:
+                        except (
+                            KeyError,
+                            exceptions.InvalidAddressException,
+                            registry.RegistryException,
+                        ) as e:
                             vollog.debug(f"Could not find InprocServer32 key: {e}")
 
                         yield (architecture, provider_guid, provider_name, dll_path)
 
-                    except (exceptions.InvalidAddressException, registry.RegistryException):
+                    except (
+                        exceptions.InvalidAddressException,
+                        registry.RegistryException,
+                    ):
                         continue
 
     def _generator(self) -> Iterator[Tuple[int, Tuple[str, str, str, str]]]:
         """Generator that yields AMSI provider information for rendering."""
-        for architecture, provider_guid, provider_name, dll_path in self.list_amsi_providers(
+        for (
+            architecture,
+            provider_guid,
+            provider_name,
+            dll_path,
+        ) in self.list_amsi_providers(
             context=self.context,
             base_config_path=self.config_path,
             kernel_module_name=self.config["kernel"],
