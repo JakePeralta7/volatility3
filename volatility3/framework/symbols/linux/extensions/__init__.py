@@ -2005,8 +2005,9 @@ class mnt_namespace(objects.StructType):
                 self._context, self
             )
             for node in self.mounts.get_nodes():
+                # See kernel's node_to_mount()
                 mnt = linux.LinuxUtilities.container_of(
-                    node, "mount", "mnt_list", vmlinux
+                    node, "mount", "mnt_node", vmlinux
                 )
                 yield mnt
         else:
